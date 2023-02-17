@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.endMarkedContent = exports.beginMarkedContent = exports.setStrokingSpecialColor = exports.setStrokingColorspace = exports.setFillingSpecialColor = exports.setFillingColorspace = exports.setStrokingCmykColor = exports.setFillingCmykColor = exports.setStrokingRgbColor = exports.setFillingRgbColor = exports.setStrokingGrayscaleColor = exports.setFillingGrayscaleColor = exports.drawObject = exports.rotateAndSkewTextDegreesAndTranslate = exports.rotateAndSkewTextRadiansAndTranslate = exports.setTextMatrix = exports.setTextRenderingMode = exports.TextRenderingMode = exports.setTextRise = exports.setLineHeight = exports.setCharacterSqueeze = exports.setWordSpacing = exports.setCharacterSpacing = exports.setFontAndSize = exports.endText = exports.beginText = exports.showText = exports.moveText = exports.nextLine = exports.endPath = exports.fillAndStroke = exports.fill = exports.stroke = exports.square = exports.rectangle = exports.lineTo = exports.moveTo = exports.closePath = exports.appendQuadraticCurve = exports.appendBezierCurve = exports.setLineWidth = exports.popGraphicsState = exports.pushGraphicsState = exports.setGraphicsState = exports.setLineJoin = exports.LineJoinStyle = exports.setLineCap = exports.LineCapStyle = exports.restoreDashPattern = exports.setDashPattern = exports.skewDegrees = exports.skewRadians = exports.rotateDegrees = exports.rotateRadians = exports.scale = exports.translate = exports.concatTransformationMatrix = exports.clipEvenOdd = exports.clip = void 0;
+exports.endMarkedContent = exports.beginMarkedContent = exports.setStrokingPatternColor = exports.setStrokingSpecialColor = exports.setStrokingPatternColorspace = exports.setStrokingColorspace = exports.setFillingPatternColor = exports.setFillingSpecialColor = exports.setFillingPatternColorspace = exports.setFillingColorspace = exports.setStrokingCmykColor = exports.setFillingCmykColor = exports.setStrokingRgbColor = exports.setFillingRgbColor = exports.setStrokingGrayscaleColor = exports.setFillingGrayscaleColor = exports.drawObject = exports.rotateAndSkewTextDegreesAndTranslate = exports.rotateAndSkewTextRadiansAndTranslate = exports.setTextMatrix = exports.setTextRenderingMode = exports.TextRenderingMode = exports.setTextRise = exports.setLineHeight = exports.setCharacterSqueeze = exports.setWordSpacing = exports.setCharacterSpacing = exports.setFontAndSize = exports.endText = exports.beginText = exports.showText = exports.moveText = exports.nextLine = exports.endPath = exports.fillAndStroke = exports.fill = exports.stroke = exports.square = exports.rectangle = exports.lineTo = exports.moveTo = exports.closePath = exports.appendQuadraticCurve = exports.appendBezierCurve = exports.setLineWidth = exports.popGraphicsState = exports.pushGraphicsState = exports.setGraphicsState = exports.setLineJoin = exports.LineJoinStyle = exports.setLineCap = exports.LineCapStyle = exports.restoreDashPattern = exports.setDashPattern = exports.skewDegrees = exports.skewRadians = exports.rotateDegrees = exports.rotateRadians = exports.scale = exports.translate = exports.concatTransformationMatrix = exports.clipEvenOdd = exports.clip = void 0;
 var tslib_1 = require("tslib");
 var objects_1 = require("./objects");
 var rotations_1 = require("./rotations");
 var core_1 = require("../core");
+// import {TransformationMatrix} from 'src/types';
 /* ==================== Clipping Path Operators ==================== */
 exports.clip = function () { return core_1.PDFOperator.of(core_1.PDFOperatorNames.ClipNonZero); };
 exports.clipEvenOdd = function () { return core_1.PDFOperator.of(core_1.PDFOperatorNames.ClipEvenOdd); };
@@ -227,6 +228,9 @@ exports.setStrokingCmykColor = function (cyan, magenta, yellow, key) {
 exports.setFillingColorspace = function (name) {
     return core_1.PDFOperator.of(core_1.PDFOperatorNames.NonStrokingColorspace, [objects_1.asPDFName(name)]);
 };
+exports.setFillingPatternColorspace = function () {
+    return core_1.PDFOperator.of(core_1.PDFOperatorNames.NonStrokingColorspace, [objects_1.asPDFName('Pattern')]);
+};
 exports.setFillingSpecialColor = function () {
     var components = [];
     for (var _i = 0; _i < arguments.length; _i++) {
@@ -234,8 +238,14 @@ exports.setFillingSpecialColor = function () {
     }
     return core_1.PDFOperator.of(core_1.PDFOperatorNames.NonStrokingColorN, tslib_1.__spreadArrays(components.map(objects_1.asPDFNumber)));
 };
+exports.setFillingPatternColor = function (name) {
+    return core_1.PDFOperator.of(core_1.PDFOperatorNames.NonStrokingColorN, [objects_1.asPDFName(name)]);
+};
 exports.setStrokingColorspace = function (name) {
     return core_1.PDFOperator.of(core_1.PDFOperatorNames.StrokingColorspace, [objects_1.asPDFName(name)]);
+};
+exports.setStrokingPatternColorspace = function () {
+    return core_1.PDFOperator.of(core_1.PDFOperatorNames.StrokingColorspace, [objects_1.asPDFName('Pattern')]);
 };
 exports.setStrokingSpecialColor = function () {
     var components = [];
@@ -243,6 +253,9 @@ exports.setStrokingSpecialColor = function () {
         components[_i] = arguments[_i];
     }
     return core_1.PDFOperator.of(core_1.PDFOperatorNames.StrokingColorN, tslib_1.__spreadArrays(components.map(objects_1.asPDFNumber)));
+};
+exports.setStrokingPatternColor = function (name) {
+    return core_1.PDFOperator.of(core_1.PDFOperatorNames.StrokingColorN, [objects_1.asPDFName(name)]);
 };
 /* ==================== Marked Content Operators ==================== */
 exports.beginMarkedContent = function (tag) {

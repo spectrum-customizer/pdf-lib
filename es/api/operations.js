@@ -1,6 +1,6 @@
 import { __spreadArrays } from "tslib";
-import { setFillingColor, setStrokingColor, setFillingColorspaceOrUndefined, setStrokingColorspaceOrUndefined, } from "./colors";
-import { beginText, closePath, drawObject, endText, fill, fillAndStroke, lineTo, moveTo, nextLine, popGraphicsState, pushGraphicsState, rotateAndSkewTextRadiansAndTranslate, rotateRadians, scale, setFontAndSize, setLineHeight, setLineWidth, showText, skewRadians, stroke, translate, setLineCap, rotateDegrees, setGraphicsState, setDashPattern, beginMarkedContent, endMarkedContent, clip, endPath, appendBezierCurve, } from "./operators";
+import { setFillingColor, setFillingColorspaceOrUndefined, setStrokingColor, setStrokingColorspaceOrUndefined, } from "./colors";
+import { appendBezierCurve, beginMarkedContent, beginText, clip, closePath, drawObject, endMarkedContent, endPath, endText, fill, fillAndStroke, lineTo, moveTo, nextLine, popGraphicsState, pushGraphicsState, rotateAndSkewTextRadiansAndTranslate, rotateDegrees, rotateRadians, scale, setDashPattern, setFontAndSize, setGraphicsState, setLineCap, setLineHeight, setLineWidth, showText, skewRadians, stroke, translate, } from "./operators";
 import { degrees, toRadians } from "./rotations";
 import { svgPathToOperators } from "./svgPath";
 import { asNumber } from "./objects";

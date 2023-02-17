@@ -118,7 +118,6 @@
     "typescript": "^3.9.5"
   },
   "license": "MIT",
-  "private": false,
   "homepage": "https://pdf-lib.js.org",
   "repository": "git+https://github.com/Hopding/pdf-lib.git",
   "bugs": {

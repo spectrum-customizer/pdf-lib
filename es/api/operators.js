@@ -2,6 +2,7 @@ import { __spreadArrays } from "tslib";
 import { asNumber, asPDFName, asPDFNumber } from "./objects";
 import { degreesToRadians } from "./rotations";
 import { PDFOperator, PDFOperatorNames as Ops, } from "../core";
+// import {TransformationMatrix} from 'src/types';
 /* ==================== Clipping Path Operators ==================== */
 export var clip = function () { return PDFOperator.of(Ops.ClipNonZero); };
 export var clipEvenOdd = function () { return PDFOperator.of(Ops.ClipEvenOdd); };
@@ -224,6 +225,9 @@ export var setStrokingCmykColor = function (cyan, magenta, yellow, key) {
 export var setFillingColorspace = function (name) {
     return PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName(name)]);
 };
+export var setFillingPatternColorspace = function () {
+    return PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName('Pattern')]);
+};
 export var setFillingSpecialColor = function () {
     var components = [];
     for (var _i = 0; _i < arguments.length; _i++) {
@@ -231,8 +235,14 @@ export var setFillingSpecialColor = function () {
     }
     return PDFOperator.of(Ops.NonStrokingColorN, __spreadArrays(components.map(asPDFNumber)));
 };
+export var setFillingPatternColor = function (name) {
+    return PDFOperator.of(Ops.NonStrokingColorN, [asPDFName(name)]);
+};
 export var setStrokingColorspace = function (name) {
     return PDFOperator.of(Ops.StrokingColorspace, [asPDFName(name)]);
+};
+export var setStrokingPatternColorspace = function () {
+    return PDFOperator.of(Ops.StrokingColorspace, [asPDFName('Pattern')]);
 };
 export var setStrokingSpecialColor = function () {
     var components = [];
@@ -240,6 +250,9 @@ export var setStrokingSpecialColor = function () {
         components[_i] = arguments[_i];
     }
     return PDFOperator.of(Ops.StrokingColorN, __spreadArrays(components.map(asPDFNumber)));
+};
+export var setStrokingPatternColor = function (name) {
+    return PDFOperator.of(Ops.StrokingColorN, [asPDFName(name)]);
 };
 /* ==================== Marked Content Operators ==================== */
 export var beginMarkedContent = function (tag) {

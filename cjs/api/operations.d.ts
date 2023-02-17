@@ -1,5 +1,5 @@
 import { Color } from "./colors";
-import { scale, LineCapStyle } from "./operators";
+import { LineCapStyle, scale } from "./operators";
 import { Rotation } from "./rotations";
 import { PDFHexString, PDFName, PDFNumber, PDFOperator } from "../core";
 export interface DrawTextOptions {

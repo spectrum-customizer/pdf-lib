@@ -15685,6 +15685,8 @@ var PDFName = /** @class */ (function (_super) {
     PDFName.Font = PDFName.of('Font');
     PDFName.XObject = PDFName.of('XObject');
     PDFName.ExtGState = PDFName.of('ExtGState');
+    PDFName.Shading = PDFName.of('Shading');
+    PDFName.Pattern = PDFName.of('Pattern');
     PDFName.ColorSpace = PDFName.of('ColorSpace');
     PDFName.Contents = PDFName.of('Contents');
     PDFName.Type = PDFName.of('Type');
@@ -16562,6 +16564,22 @@ var PDFPageLeaf = /** @class */ (function (_super) {
         this.setColorSpace(newKey, colorSpaceRef);
         return newKey;
     };
+    PDFPageLeaf.prototype.newShading = function (tag) {
+        var Shading = this.normalizedEntries().Shading;
+        return Shading.uniqueKey(tag);
+    };
+    PDFPageLeaf.prototype.setShading = function (name, shadingRef) {
+        var Shading = this.normalizedEntries().Shading;
+        Shading.set(name, shadingRef);
+    };
+    PDFPageLeaf.prototype.newPattern = function (tag) {
+        var Pattern = this.normalizedEntries().Pattern;
+        return Pattern.uniqueKey(tag);
+    };
+    PDFPageLeaf.prototype.setPattern = function (name, patternRef) {
+        var Pattern = this.normalizedEntries().Pattern;
+        Pattern.set(name, patternRef);
+    };
     PDFPageLeaf.prototype.ascend = function (visitor) {
         visitor(this);
         var Parent = this.Parent();
@@ -16596,6 +16614,10 @@ var PDFPageLeaf = /** @class */ (function (_super) {
         // TODO: Clone `ColorSpace` if it is inherited
         var ColorSpace = Resources.lookupMaybe(PDFName.ColorSpace, PDFDict) || context.obj({});
         Resources.set(PDFName.ColorSpace, ColorSpace);
+        var Shading = Resources.lookupMaybe(PDFName.Shading, PDFDict) || context.obj({});
+        Resources.set(PDFName.Shading, Shading);
+        var Pattern = Resources.lookupMaybe(PDFName.Pattern, PDFDict) || context.obj({});
+        Resources.set(PDFName.Pattern, Pattern);
         var Annots = this.Annots() || context.obj([]);
         this.set(PDFName.Annots, Annots);
         this.normalized = true;
@@ -16613,6 +16635,8 @@ var PDFPageLeaf = /** @class */ (function (_super) {
             XObject: Resources.lookup(PDFName.XObject, PDFDict),
             ExtGState: Resources.lookup(PDFName.ExtGState, PDFDict),
             ColorSpace: Resources.lookup(PDFName.ColorSpace, PDFDict),
+            Shading: Resources.lookup(PDFName.Shading, PDFDict),
+            Pattern: Resources.lookup(PDFName.Pattern, PDFDict)
         };
     };
     PDFPageLeaf.InheritableEntries = [
@@ -30419,6 +30443,7 @@ var rotateRectangle = function (rectangle, borderWidth, degreeAngle) {
         return { x: x - b, y: y - b, width: w, height: h };
 };
 
+// import {TransformationMatrix} from 'src/types';
 /* ==================== Clipping Path Operators ==================== */
 var clip = function () { return PDFOperator.of(Ops.ClipNonZero); };
 var clipEvenOdd = function () { return PDFOperator.of(Ops.ClipEvenOdd); };
@@ -30641,6 +30666,9 @@ var setStrokingCmykColor = function (cyan, magenta, yellow, key) {
 var setFillingColorspace = function (name) {
     return PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName(name)]);
 };
+var setFillingPatternColorspace = function () {
+    return PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName('Pattern')]);
+};
 var setFillingSpecialColor = function () {
     var components = [];
     for (var _i = 0; _i < arguments.length; _i++) {
@@ -30648,8 +30676,14 @@ var setFillingSpecialColor = function () {
     }
     return PDFOperator.of(Ops.NonStrokingColorN, __spreadArrays(components.map(asPDFNumber)));
 };
+var setFillingPatternColor = function (name) {
+    return PDFOperator.of(Ops.NonStrokingColorN, [asPDFName(name)]);
+};
 var setStrokingColorspace = function (name) {
     return PDFOperator.of(Ops.StrokingColorspace, [asPDFName(name)]);
+};
+var setStrokingPatternColorspace = function () {
+    return PDFOperator.of(Ops.StrokingColorspace, [asPDFName('Pattern')]);
 };
 var setStrokingSpecialColor = function () {
     var components = [];
@@ -30657,6 +30691,9 @@ var setStrokingSpecialColor = function () {
         components[_i] = arguments[_i];
     }
     return PDFOperator.of(Ops.StrokingColorN, __spreadArrays(components.map(asPDFNumber)));
+};
+var setStrokingPatternColor = function (name) {
+    return PDFOperator.of(Ops.StrokingColorN, [asPDFName(name)]);
 };
 /* ==================== Marked Content Operators ==================== */
 var beginMarkedContent = function (tag) {
@@ -30670,6 +30707,7 @@ var ColorTypes;
     ColorTypes["RGB"] = "RGB";
     ColorTypes["CMYK"] = "CMYK";
     ColorTypes["Separation"] = "Separation";
+    ColorTypes["Pattern"] = "Pattern";
 })(ColorTypes || (ColorTypes = {}));
 var grayscale = function (gray) {
     assertRange(gray, 'gray', 0.0, 1.0);
@@ -30692,9 +30730,15 @@ var separation = function (name, tint) {
     assertRange(tint, 'tint', 0, 1);
     return { type: ColorTypes.Separation, name: name, tint: tint };
 };
-var Grayscale = ColorTypes.Grayscale, RGB = ColorTypes.RGB, CMYK = ColorTypes.CMYK, Separation = ColorTypes.Separation;
+var pattern = function (name, transform) {
+    // TODO assert
+    return { type: ColorTypes.Pattern, name: name, transform: transform };
+};
+var Grayscale = ColorTypes.Grayscale, RGB = ColorTypes.RGB, CMYK = ColorTypes.CMYK, Separation = ColorTypes.Separation, Pattern = ColorTypes.Pattern;
 var setFillingColorspaceOrUndefined = function (color) {
-    return color.type === Separation ? setFillingColorspace(color.name) : undefined;
+    return color.type === Separation ? setFillingColorspace(color.name)
+        : color.type === Pattern ? setFillingPatternColorspace()
+            : undefined;
 };
 // prettier-ignore
 var setFillingColor = function (color) {
@@ -30702,10 +30746,14 @@ var setFillingColor = function (color) {
         : color.type === RGB ? setFillingRgbColor(color.red, color.green, color.blue)
             : color.type === CMYK ? setFillingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                 : color.type === Separation ? setFillingSpecialColor(color.tint)
-                    : error("Invalid color: " + JSON.stringify(color));
+                    : color.type === Pattern ? setFillingPatternColor(color.name)
+                        // : color.type === Gradient   ? setFillingGradientColor
+                        : error("Invalid color: " + JSON.stringify(color));
 };
 var setStrokingColorspaceOrUndefined = function (color) {
-    return color.type === Separation ? setStrokingColorspace(color.name) : undefined;
+    return color.type === Separation ? setStrokingColorspace(color.name)
+        : color.type === Pattern ? setStrokingPatternColorspace()
+            : undefined;
 };
 // prettier-ignore
 var setStrokingColor = function (color) {
@@ -30713,7 +30761,8 @@ var setStrokingColor = function (color) {
         : color.type === RGB ? setStrokingRgbColor(color.red, color.green, color.blue)
             : color.type === CMYK ? setStrokingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                 : color.type === Separation ? setStrokingSpecialColor(color.tint)
-                    : error("Invalid color: " + JSON.stringify(color));
+                    : color.type === Pattern ? setStrokingPatternColor(color.name)
+                        : error("Invalid color: " + JSON.stringify(color));
 };
 // prettier-ignore
 var componentsToColor = function (comps, scale) {
@@ -39640,5 +39689,5 @@ var PDFButton = /** @class */ (function (_super) {
     return PDFButton;
 }(PDFField));
 
-export { AFRelationship, AcroButtonFlags, AcroChoiceFlags, AcroFieldFlags, AcroTextFlags, AnnotationFlags, AppearanceCharacteristics, BlendMode, Cache, CharCodes$1 as CharCodes, ColorTypes, CombedTextLayoutError, CorruptPageTreeError, CustomFontEmbedder, CustomFontSubsetEmbedder, Duplex, EncryptedPDFError, ExceededMaxLengthError, FieldAlreadyExistsError, FieldExistsAsNonTerminalError, FileEmbedder, FontkitNotRegisteredError, ForeignPageError, ImageAlignment, IndexOutOfBoundsError, InvalidAcroFieldValueError, InvalidFieldNamePartError, InvalidMaxLengthError, InvalidPDFDateStringError, InvalidTargetIndexError, JpegEmbedder, LineCapStyle, LineJoinStyle, MethodNotImplementedError, MissingCatalogError, MissingDAEntryError, MissingKeywordError, MissingOnValueCheckError, MissingPDFHeaderError, MissingPageContentsEmbeddingError, MissingTfOperatorError, MultiSelectValueError, NextByteAssertionError, NoSuchFieldError, NonFullScreenPageMode, NumberParsingError, PDFAcroButton, PDFAcroCheckBox, PDFAcroChoice, PDFAcroComboBox, PDFAcroField, PDFAcroForm, PDFAcroListBox, PDFAcroNonTerminal, PDFAcroPushButton, PDFAcroRadioButton, PDFAcroSignature, PDFAcroTerminal, PDFAcroText, PDFAnnotation, PDFArray, PDFArrayIsNotRectangleError, PDFBool, PDFButton, PDFCatalog, PDFCheckBox, PDFContentStream, PDFContext, PDFCrossRefSection, PDFCrossRefStream, PDFDict, PDFDocument, PDFDropdown, PDFEmbeddedPage, PDFField, PDFFlateStream, PDFFont, PDFForm, PDFHeader, PDFHexString, PDFImage, PDFInvalidObject, PDFInvalidObjectParsingError, PDFJavaScript, PDFName, PDFNull$1 as PDFNull, PDFNumber, PDFObject, PDFObjectCopier, PDFObjectParser, PDFObjectParsingError, PDFObjectStream, PDFObjectStreamParser, PDFOperator, Ops as PDFOperatorNames, PDFOptionList, PDFPage, PDFPageEmbedder, PDFPageLeaf, PDFPageTree, PDFParser, PDFParsingError, PDFRadioGroup, PDFRawStream, PDFRef, PDFSeparation, PDFSignature, PDFStream, PDFStreamParsingError, PDFStreamWriter, PDFString, PDFTextField, PDFTrailer, PDFTrailerDict, PDFWidgetAnnotation, PDFWriter, PDFXRefStreamParser, PageEmbeddingMismatchedContextError, PageSizes, ParseSpeeds, PngEmbedder, PrintScaling, PrivateConstructorError, ReadingDirection, RemovePageFromEmptyDocumentError, ReparseError, RichTextFieldReadError, RotationTypes, SeparationEmbedder, StalledParserError, StandardFontEmbedder, StandardFontValues, StandardFonts, TextAlignment, TextRenderingMode, UnbalancedParenthesisError, UnexpectedFieldTypeError, UnexpectedObjectTypeError, UnrecognizedStreamTypeError, UnsupportedEncodingError, ViewerPreferences, addRandomSuffix, adjustDimsForRotation, appendBezierCurve, appendQuadraticCurve, arrayAsString, asNumber, asPDFName, asPDFNumber, assertEachIs, assertInteger, assertIs, assertIsOneOf, assertIsOneOfOrUndefined, assertIsSubset, assertMultiple, assertOrUndefined, assertPositive, assertRange, assertRangeOrUndefined, backtick, beginMarkedContent, beginText, breakTextIntoLines, byAscendingId, bytesFor, canBeConvertedToUint8Array, charAtIndex, charFromCode, charFromHexCode, charSplit, cleanText, clip, clipEvenOdd, closePath, cmyk, colorToComponents, componentsToColor, concatTransformationMatrix, copyStringIntoBuffer, createPDFAcroField, createPDFAcroFields, createTypeErrorMsg, createValueErrorMsg, decodeFromBase64, decodeFromBase64DataUri, decodePDFRawStream, defaultButtonAppearanceProvider, defaultCheckBoxAppearanceProvider, defaultDropdownAppearanceProvider, defaultOptionListAppearanceProvider, defaultRadioGroupAppearanceProvider, defaultTextFieldAppearanceProvider, degrees, degreesToRadians, drawButton, drawCheckBox, drawCheckMark, drawEllipse, drawEllipsePath, drawImage, drawLine, drawLinesOfText, drawObject, drawOptionList, drawPage, drawRadioButton, drawRectangle, drawSvgPath, drawText, drawTextField, drawTextLines, encodeToBase64, endMarkedContent, endPath, endText, error, escapeRegExp, escapedNewlineChars, fill, fillAndStroke, findLastMatch, getType, grayscale, hasSurrogates, hasUtf16BOM, highSurrogate, isNewlineChar, isStandardFont, isType, isWithinBMP, last, layoutCombedText, layoutMultilineText, layoutSinglelineText, lineSplit, lineTo, lowSurrogate, mergeIntoTypedArray, mergeLines, mergeUint8Arrays, moveText, moveTo, newlineChars, nextLine, normalizeAppearance, numberToString, padStart, parseDate, pdfDocEncodingDecode, pluckIndices, popGraphicsState, pushGraphicsState, radians, radiansToDegrees, range, rectangle, rectanglesAreEqual, reduceRotation, restoreDashPattern, reverseArray, rgb, rotateAndSkewTextDegreesAndTranslate, rotateAndSkewTextRadiansAndTranslate, rotateDegrees, rotateInPlace, rotateRadians, rotateRectangle, scale, separation, setCharacterSpacing, setCharacterSqueeze, setDashPattern, setFillingCmykColor, setFillingColor, setFillingColorspace, setFillingColorspaceOrUndefined, setFillingGrayscaleColor, setFillingRgbColor, setFillingSpecialColor, setFontAndSize, setGraphicsState, setLineCap, setLineHeight, setLineJoin, setLineWidth, setStrokingCmykColor, setStrokingColor, setStrokingColorspace, setStrokingColorspaceOrUndefined, setStrokingGrayscaleColor, setStrokingRgbColor, setStrokingSpecialColor, setTextMatrix, setTextRenderingMode, setTextRise, setWordSpacing, showText, singleQuote, sizeInBytes, skewDegrees, skewRadians, sortedUniq, square, stroke, sum, toCharCode, toCodePoint, toDegrees, toHexString, toHexStringOfMinLength, toRadians, toUint8Array, translate, typedArrayFor, utf16Decode, utf16Encode, utf8Encode, values, waitForTick };
+export { AFRelationship, AcroButtonFlags, AcroChoiceFlags, AcroFieldFlags, AcroTextFlags, AnnotationFlags, AppearanceCharacteristics, BlendMode, Cache, CharCodes$1 as CharCodes, ColorTypes, CombedTextLayoutError, CorruptPageTreeError, CustomFontEmbedder, CustomFontSubsetEmbedder, Duplex, EncryptedPDFError, ExceededMaxLengthError, FieldAlreadyExistsError, FieldExistsAsNonTerminalError, FileEmbedder, FontkitNotRegisteredError, ForeignPageError, ImageAlignment, IndexOutOfBoundsError, InvalidAcroFieldValueError, InvalidFieldNamePartError, InvalidMaxLengthError, InvalidPDFDateStringError, InvalidTargetIndexError, JpegEmbedder, LineCapStyle, LineJoinStyle, MethodNotImplementedError, MissingCatalogError, MissingDAEntryError, MissingKeywordError, MissingOnValueCheckError, MissingPDFHeaderError, MissingPageContentsEmbeddingError, MissingTfOperatorError, MultiSelectValueError, NextByteAssertionError, NoSuchFieldError, NonFullScreenPageMode, NumberParsingError, PDFAcroButton, PDFAcroCheckBox, PDFAcroChoice, PDFAcroComboBox, PDFAcroField, PDFAcroForm, PDFAcroListBox, PDFAcroNonTerminal, PDFAcroPushButton, PDFAcroRadioButton, PDFAcroSignature, PDFAcroTerminal, PDFAcroText, PDFAnnotation, PDFArray, PDFArrayIsNotRectangleError, PDFBool, PDFButton, PDFCatalog, PDFCheckBox, PDFContentStream, PDFContext, PDFCrossRefSection, PDFCrossRefStream, PDFDict, PDFDocument, PDFDropdown, PDFEmbeddedPage, PDFField, PDFFlateStream, PDFFont, PDFForm, PDFHeader, PDFHexString, PDFImage, PDFInvalidObject, PDFInvalidObjectParsingError, PDFJavaScript, PDFName, PDFNull$1 as PDFNull, PDFNumber, PDFObject, PDFObjectCopier, PDFObjectParser, PDFObjectParsingError, PDFObjectStream, PDFObjectStreamParser, PDFOperator, Ops as PDFOperatorNames, PDFOptionList, PDFPage, PDFPageEmbedder, PDFPageLeaf, PDFPageTree, PDFParser, PDFParsingError, PDFRadioGroup, PDFRawStream, PDFRef, PDFSeparation, PDFSignature, PDFStream, PDFStreamParsingError, PDFStreamWriter, PDFString, PDFTextField, PDFTrailer, PDFTrailerDict, PDFWidgetAnnotation, PDFWriter, PDFXRefStreamParser, PageEmbeddingMismatchedContextError, PageSizes, ParseSpeeds, PngEmbedder, PrintScaling, PrivateConstructorError, ReadingDirection, RemovePageFromEmptyDocumentError, ReparseError, RichTextFieldReadError, RotationTypes, SeparationEmbedder, StalledParserError, StandardFontEmbedder, StandardFontValues, StandardFonts, TextAlignment, TextRenderingMode, UnbalancedParenthesisError, UnexpectedFieldTypeError, UnexpectedObjectTypeError, UnrecognizedStreamTypeError, UnsupportedEncodingError, ViewerPreferences, addRandomSuffix, adjustDimsForRotation, appendBezierCurve, appendQuadraticCurve, arrayAsString, asNumber, asPDFName, asPDFNumber, assertEachIs, assertInteger, assertIs, assertIsOneOf, assertIsOneOfOrUndefined, assertIsSubset, assertMultiple, assertOrUndefined, assertPositive, assertRange, assertRangeOrUndefined, backtick, beginMarkedContent, beginText, breakTextIntoLines, byAscendingId, bytesFor, canBeConvertedToUint8Array, charAtIndex, charFromCode, charFromHexCode, charSplit, cleanText, clip, clipEvenOdd, closePath, cmyk, colorToComponents, componentsToColor, concatTransformationMatrix, copyStringIntoBuffer, createPDFAcroField, createPDFAcroFields, createTypeErrorMsg, createValueErrorMsg, decodeFromBase64, decodeFromBase64DataUri, decodePDFRawStream, defaultButtonAppearanceProvider, defaultCheckBoxAppearanceProvider, defaultDropdownAppearanceProvider, defaultOptionListAppearanceProvider, defaultRadioGroupAppearanceProvider, defaultTextFieldAppearanceProvider, degrees, degreesToRadians, drawButton, drawCheckBox, drawCheckMark, drawEllipse, drawEllipsePath, drawImage, drawLine, drawLinesOfText, drawObject, drawOptionList, drawPage, drawRadioButton, drawRectangle, drawSvgPath, drawText, drawTextField, drawTextLines, encodeToBase64, endMarkedContent, endPath, endText, error, escapeRegExp, escapedNewlineChars, fill, fillAndStroke, findLastMatch, getType, grayscale, hasSurrogates, hasUtf16BOM, highSurrogate, isNewlineChar, isStandardFont, isType, isWithinBMP, last, layoutCombedText, layoutMultilineText, layoutSinglelineText, lineSplit, lineTo, lowSurrogate, mergeIntoTypedArray, mergeLines, mergeUint8Arrays, moveText, moveTo, newlineChars, nextLine, normalizeAppearance, numberToString, padStart, parseDate, pattern, pdfDocEncodingDecode, pluckIndices, popGraphicsState, pushGraphicsState, radians, radiansToDegrees, range, rectangle, rectanglesAreEqual, reduceRotation, restoreDashPattern, reverseArray, rgb, rotateAndSkewTextDegreesAndTranslate, rotateAndSkewTextRadiansAndTranslate, rotateDegrees, rotateInPlace, rotateRadians, rotateRectangle, scale, separation, setCharacterSpacing, setCharacterSqueeze, setDashPattern, setFillingCmykColor, setFillingColor, setFillingColorspace, setFillingColorspaceOrUndefined, setFillingGrayscaleColor, setFillingPatternColor, setFillingPatternColorspace, setFillingRgbColor, setFillingSpecialColor, setFontAndSize, setGraphicsState, setLineCap, setLineHeight, setLineJoin, setLineWidth, setStrokingCmykColor, setStrokingColor, setStrokingColorspace, setStrokingColorspaceOrUndefined, setStrokingGrayscaleColor, setStrokingPatternColor, setStrokingPatternColorspace, setStrokingRgbColor, setStrokingSpecialColor, setTextMatrix, setTextRenderingMode, setTextRise, setWordSpacing, showText, singleQuote, sizeInBytes, skewDegrees, skewRadians, sortedUniq, square, stroke, sum, toCharCode, toCodePoint, toDegrees, toHexString, toHexStringOfMinLength, toRadians, toUint8Array, translate, typedArrayFor, utf16Decode, utf16Encode, utf8Encode, values, waitForTick };
 //# sourceMappingURL=pdf-lib.esm.js.map

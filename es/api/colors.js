@@ -1,4 +1,4 @@
-import { setFillingCmykColor, setFillingGrayscaleColor, setFillingRgbColor, setFillingSpecialColor, setStrokingCmykColor, setStrokingGrayscaleColor, setStrokingRgbColor, setStrokingSpecialColor, setFillingColorspace, setStrokingColorspace, } from "./operators";
+import { setFillingCmykColor, setFillingGrayscaleColor, setFillingRgbColor, setFillingSpecialColor, setStrokingCmykColor, setStrokingGrayscaleColor, setStrokingRgbColor, setStrokingSpecialColor, setFillingColorspace, setStrokingColorspace, setFillingPatternColor, setStrokingPatternColor, setFillingPatternColorspace, setStrokingPatternColorspace, } from "./operators";
 import { assertRange, error } from "../utils";
 export var ColorTypes;
 (function (ColorTypes) {
@@ -6,6 +6,7 @@ export var ColorTypes;
     ColorTypes["RGB"] = "RGB";
     ColorTypes["CMYK"] = "CMYK";
     ColorTypes["Separation"] = "Separation";
+    ColorTypes["Pattern"] = "Pattern";
 })(ColorTypes || (ColorTypes = {}));
 export var grayscale = function (gray) {
     assertRange(gray, 'gray', 0.0, 1.0);
@@ -28,9 +29,15 @@ export var separation = function (name, tint) {
     assertRange(tint, 'tint', 0, 1);
     return { type: ColorTypes.Separation, name: name, tint: tint };
 };
-var Grayscale = ColorTypes.Grayscale, RGB = ColorTypes.RGB, CMYK = ColorTypes.CMYK, Separation = ColorTypes.Separation;
+export var pattern = function (name, transform) {
+    // TODO assert
+    return { type: ColorTypes.Pattern, name: name, transform: transform };
+};
+var Grayscale = ColorTypes.Grayscale, RGB = ColorTypes.RGB, CMYK = ColorTypes.CMYK, Separation = ColorTypes.Separation, Pattern = ColorTypes.Pattern;
 export var setFillingColorspaceOrUndefined = function (color) {
-    return color.type === Separation ? setFillingColorspace(color.name) : undefined;
+    return color.type === Separation ? setFillingColorspace(color.name)
+        : color.type === Pattern ? setFillingPatternColorspace()
+            : undefined;
 };
 // prettier-ignore
 export var setFillingColor = function (color) {
@@ -38,10 +45,14 @@ export var setFillingColor = function (color) {
         : color.type === RGB ? setFillingRgbColor(color.red, color.green, color.blue)
             : color.type === CMYK ? setFillingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                 : color.type === Separation ? setFillingSpecialColor(color.tint)
-                    : error("Invalid color: " + JSON.stringify(color));
+                    : color.type === Pattern ? setFillingPatternColor(color.name)
+                        // : color.type === Gradient   ? setFillingGradientColor
+                        : error("Invalid color: " + JSON.stringify(color));
 };
 export var setStrokingColorspaceOrUndefined = function (color) {
-    return color.type === Separation ? setStrokingColorspace(color.name) : undefined;
+    return color.type === Separation ? setStrokingColorspace(color.name)
+        : color.type === Pattern ? setStrokingPatternColorspace()
+            : undefined;
 };
 // prettier-ignore
 export var setStrokingColor = function (color) {
@@ -49,7 +60,8 @@ export var setStrokingColor = function (color) {
         : color.type === RGB ? setStrokingRgbColor(color.red, color.green, color.blue)
             : color.type === CMYK ? setStrokingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                 : color.type === Separation ? setStrokingSpecialColor(color.tint)
-                    : error("Invalid color: " + JSON.stringify(color));
+                    : color.type === Pattern ? setStrokingPatternColor(color.name)
+                        : error("Invalid color: " + JSON.stringify(color));
 };
 // prettier-ignore
 export var componentsToColor = function (comps, scale) {

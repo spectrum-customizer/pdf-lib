@@ -7,6 +7,7 @@ import {
   PDFOperator,
   PDFOperatorNames as Ops,
 } from 'src/core';
+// import {TransformationMatrix} from 'src/types';
 
 /* ==================== Clipping Path Operators ==================== */
 
@@ -355,15 +356,27 @@ export const setStrokingCmykColor = (
 export const setFillingColorspace = (name: string | PDFName) =>
   PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName(name)]);
 
+export const setFillingPatternColorspace = () =>
+  PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName('Pattern')]);
+
 export const setFillingSpecialColor = (...components: (number | PDFNumber)[]) =>
   PDFOperator.of(Ops.NonStrokingColorN, [...components.map(asPDFNumber)]);
+
+export const setFillingPatternColor = (name: string | PDFName) =>
+  PDFOperator.of(Ops.NonStrokingColorN, [asPDFName(name)]);
 
 export const setStrokingColorspace = (name: string | PDFName) =>
   PDFOperator.of(Ops.StrokingColorspace, [asPDFName(name)]);
 
+export const setStrokingPatternColorspace = () =>
+  PDFOperator.of(Ops.StrokingColorspace, [asPDFName('Pattern')]);
+
 export const setStrokingSpecialColor = (
   ...components: (number | PDFNumber)[]
 ) => PDFOperator.of(Ops.StrokingColorN, [...components.map(asPDFNumber)]);
+
+export const setStrokingPatternColor = (name: string | PDFName) =>
+  PDFOperator.of(Ops.StrokingColorN, [asPDFName(name)]);
 
 /* ==================== Marked Content Operators ==================== */
 

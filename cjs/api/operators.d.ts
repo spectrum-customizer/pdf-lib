@@ -82,9 +82,13 @@ export declare const setStrokingRgbColor: (red: number | PDFNumber, green: numbe
 export declare const setFillingCmykColor: (cyan: number | PDFNumber, magenta: number | PDFNumber, yellow: number | PDFNumber, key: number | PDFNumber) => PDFOperator;
 export declare const setStrokingCmykColor: (cyan: number | PDFNumber, magenta: number | PDFNumber, yellow: number | PDFNumber, key: number | PDFNumber) => PDFOperator;
 export declare const setFillingColorspace: (name: string | PDFName) => PDFOperator;
+export declare const setFillingPatternColorspace: () => PDFOperator;
 export declare const setFillingSpecialColor: (...components: (number | PDFNumber)[]) => PDFOperator;
+export declare const setFillingPatternColor: (name: string | PDFName) => PDFOperator;
 export declare const setStrokingColorspace: (name: string | PDFName) => PDFOperator;
+export declare const setStrokingPatternColorspace: () => PDFOperator;
 export declare const setStrokingSpecialColor: (...components: (number | PDFNumber)[]) => PDFOperator;
+export declare const setStrokingPatternColor: (name: string | PDFName) => PDFOperator;
 export declare const beginMarkedContent: (tag: string | PDFName) => PDFOperator;
 export declare const endMarkedContent: () => PDFOperator;
 //# sourceMappingURL=operators.d.ts.map

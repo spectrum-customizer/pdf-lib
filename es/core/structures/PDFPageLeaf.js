@@ -150,6 +150,22 @@ var PDFPageLeaf = /** @class */ (function (_super) {
         this.setColorSpace(newKey, colorSpaceRef);
         return newKey;
     };
+    PDFPageLeaf.prototype.newShading = function (tag) {
+        var Shading = this.normalizedEntries().Shading;
+        return Shading.uniqueKey(tag);
+    };
+    PDFPageLeaf.prototype.setShading = function (name, shadingRef) {
+        var Shading = this.normalizedEntries().Shading;
+        Shading.set(name, shadingRef);
+    };
+    PDFPageLeaf.prototype.newPattern = function (tag) {
+        var Pattern = this.normalizedEntries().Pattern;
+        return Pattern.uniqueKey(tag);
+    };
+    PDFPageLeaf.prototype.setPattern = function (name, patternRef) {
+        var Pattern = this.normalizedEntries().Pattern;
+        Pattern.set(name, patternRef);
+    };
     PDFPageLeaf.prototype.ascend = function (visitor) {
         visitor(this);
         var Parent = this.Parent();
@@ -184,6 +200,10 @@ var PDFPageLeaf = /** @class */ (function (_super) {
         // TODO: Clone `ColorSpace` if it is inherited
         var ColorSpace = Resources.lookupMaybe(PDFName.ColorSpace, PDFDict) || context.obj({});
         Resources.set(PDFName.ColorSpace, ColorSpace);
+        var Shading = Resources.lookupMaybe(PDFName.Shading, PDFDict) || context.obj({});
+        Resources.set(PDFName.Shading, Shading);
+        var Pattern = Resources.lookupMaybe(PDFName.Pattern, PDFDict) || context.obj({});
+        Resources.set(PDFName.Pattern, Pattern);
         var Annots = this.Annots() || context.obj([]);
         this.set(PDFName.Annots, Annots);
         this.normalized = true;
@@ -201,6 +221,8 @@ var PDFPageLeaf = /** @class */ (function (_super) {
             XObject: Resources.lookup(PDFName.XObject, PDFDict),
             ExtGState: Resources.lookup(PDFName.ExtGState, PDFDict),
             ColorSpace: Resources.lookup(PDFName.ColorSpace, PDFDict),
+            Shading: Resources.lookup(PDFName.Shading, PDFDict),
+            Pattern: Resources.lookup(PDFName.Pattern, PDFDict)
         };
     };
     PDFPageLeaf.InheritableEntries = [

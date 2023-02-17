@@ -43,6 +43,10 @@ declare class PDFPageLeaf extends PDFDict {
     setColorSpace(name: PDFName, colorSpaceRef: PDFRef): void;
     newColorSpaceKey(tag: string): PDFName;
     newColorSpace(tag: string, colorSpaceRef: PDFRef): PDFName;
+    newShading(tag: string): PDFName;
+    setShading(name: PDFName, shadingRef: PDFRef): void;
+    newPattern(tag: string): PDFName;
+    setPattern(name: PDFName, patternRef: PDFRef): void;
     ascend(visitor: (node: PDFPageTree | PDFPageLeaf) => any): void;
     normalize(): void;
     normalizedEntries(): {
@@ -53,6 +57,8 @@ declare class PDFPageLeaf extends PDFDict {
         XObject: PDFDict;
         ExtGState: PDFDict;
         ColorSpace: PDFDict;
+        Shading: PDFDict;
+        Pattern: PDFDict;
     };
 }
 export default PDFPageLeaf;

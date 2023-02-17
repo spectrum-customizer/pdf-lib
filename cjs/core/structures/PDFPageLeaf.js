@@ -152,6 +152,22 @@ var PDFPageLeaf = /** @class */ (function (_super) {
         this.setColorSpace(newKey, colorSpaceRef);
         return newKey;
     };
+    PDFPageLeaf.prototype.newShading = function (tag) {
+        var Shading = this.normalizedEntries().Shading;
+        return Shading.uniqueKey(tag);
+    };
+    PDFPageLeaf.prototype.setShading = function (name, shadingRef) {
+        var Shading = this.normalizedEntries().Shading;
+        Shading.set(name, shadingRef);
+    };
+    PDFPageLeaf.prototype.newPattern = function (tag) {
+        var Pattern = this.normalizedEntries().Pattern;
+        return Pattern.uniqueKey(tag);
+    };
+    PDFPageLeaf.prototype.setPattern = function (name, patternRef) {
+        var Pattern = this.normalizedEntries().Pattern;
+        Pattern.set(name, patternRef);
+    };
     PDFPageLeaf.prototype.ascend = function (visitor) {
         visitor(this);
         var Parent = this.Parent();
@@ -186,6 +202,10 @@ var PDFPageLeaf = /** @class */ (function (_super) {
         // TODO: Clone `ColorSpace` if it is inherited
         var ColorSpace = Resources.lookupMaybe(PDFName_1.default.ColorSpace, PDFDict_1.default) || context.obj({});
         Resources.set(PDFName_1.default.ColorSpace, ColorSpace);
+        var Shading = Resources.lookupMaybe(PDFName_1.default.Shading, PDFDict_1.default) || context.obj({});
+        Resources.set(PDFName_1.default.Shading, Shading);
+        var Pattern = Resources.lookupMaybe(PDFName_1.default.Pattern, PDFDict_1.default) || context.obj({});
+        Resources.set(PDFName_1.default.Pattern, Pattern);
         var Annots = this.Annots() || context.obj([]);
         this.set(PDFName_1.default.Annots, Annots);
         this.normalized = true;
@@ -203,6 +223,8 @@ var PDFPageLeaf = /** @class */ (function (_super) {
             XObject: Resources.lookup(PDFName_1.default.XObject, PDFDict_1.default),
             ExtGState: Resources.lookup(PDFName_1.default.ExtGState, PDFDict_1.default),
             ColorSpace: Resources.lookup(PDFName_1.default.ColorSpace, PDFDict_1.default),
+            Shading: Resources.lookup(PDFName_1.default.Shading, PDFDict_1.default),
+            Pattern: Resources.lookup(PDFName_1.default.Pattern, PDFDict_1.default)
         };
     };
     PDFPageLeaf.InheritableEntries = [

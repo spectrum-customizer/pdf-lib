@@ -7,6 +7,8 @@ declare class PDFName extends PDFObject {
     static readonly Font: PDFName;
     static readonly XObject: PDFName;
     static readonly ExtGState: PDFName;
+    static readonly Shading: PDFName;
+    static readonly Pattern: PDFName;
     static readonly ColorSpace: PDFName;
     static readonly Contents: PDFName;
     static readonly Type: PDFName;

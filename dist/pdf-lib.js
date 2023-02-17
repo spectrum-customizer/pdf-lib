@@ -15691,6 +15691,8 @@
         PDFName.Font = PDFName.of('Font');
         PDFName.XObject = PDFName.of('XObject');
         PDFName.ExtGState = PDFName.of('ExtGState');
+        PDFName.Shading = PDFName.of('Shading');
+        PDFName.Pattern = PDFName.of('Pattern');
         PDFName.ColorSpace = PDFName.of('ColorSpace');
         PDFName.Contents = PDFName.of('Contents');
         PDFName.Type = PDFName.of('Type');
@@ -16568,6 +16570,22 @@
             this.setColorSpace(newKey, colorSpaceRef);
             return newKey;
         };
+        PDFPageLeaf.prototype.newShading = function (tag) {
+            var Shading = this.normalizedEntries().Shading;
+            return Shading.uniqueKey(tag);
+        };
+        PDFPageLeaf.prototype.setShading = function (name, shadingRef) {
+            var Shading = this.normalizedEntries().Shading;
+            Shading.set(name, shadingRef);
+        };
+        PDFPageLeaf.prototype.newPattern = function (tag) {
+            var Pattern = this.normalizedEntries().Pattern;
+            return Pattern.uniqueKey(tag);
+        };
+        PDFPageLeaf.prototype.setPattern = function (name, patternRef) {
+            var Pattern = this.normalizedEntries().Pattern;
+            Pattern.set(name, patternRef);
+        };
         PDFPageLeaf.prototype.ascend = function (visitor) {
             visitor(this);
             var Parent = this.Parent();
@@ -16602,6 +16620,10 @@
             // TODO: Clone `ColorSpace` if it is inherited
             var ColorSpace = Resources.lookupMaybe(PDFName.ColorSpace, PDFDict) || context.obj({});
             Resources.set(PDFName.ColorSpace, ColorSpace);
+            var Shading = Resources.lookupMaybe(PDFName.Shading, PDFDict) || context.obj({});
+            Resources.set(PDFName.Shading, Shading);
+            var Pattern = Resources.lookupMaybe(PDFName.Pattern, PDFDict) || context.obj({});
+            Resources.set(PDFName.Pattern, Pattern);
             var Annots = this.Annots() || context.obj([]);
             this.set(PDFName.Annots, Annots);
             this.normalized = true;
@@ -16619,6 +16641,8 @@
                 XObject: Resources.lookup(PDFName.XObject, PDFDict),
                 ExtGState: Resources.lookup(PDFName.ExtGState, PDFDict),
                 ColorSpace: Resources.lookup(PDFName.ColorSpace, PDFDict),
+                Shading: Resources.lookup(PDFName.Shading, PDFDict),
+                Pattern: Resources.lookup(PDFName.Pattern, PDFDict)
             };
         };
         PDFPageLeaf.InheritableEntries = [
@@ -30404,6 +30428,7 @@
             return { x: x - b, y: y - b, width: w, height: h };
     };
 
+    // import {TransformationMatrix} from 'src/types';
     /* ==================== Clipping Path Operators ==================== */
     var clip = function () { return PDFOperator.of(Ops.ClipNonZero); };
     var clipEvenOdd = function () { return PDFOperator.of(Ops.ClipEvenOdd); };
@@ -30623,6 +30648,9 @@
     var setFillingColorspace = function (name) {
         return PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName(name)]);
     };
+    var setFillingPatternColorspace = function () {
+        return PDFOperator.of(Ops.NonStrokingColorspace, [asPDFName('Pattern')]);
+    };
     var setFillingSpecialColor = function () {
         var components = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -30630,8 +30658,14 @@
         }
         return PDFOperator.of(Ops.NonStrokingColorN, __spreadArrays(components.map(asPDFNumber)));
     };
+    var setFillingPatternColor = function (name) {
+        return PDFOperator.of(Ops.NonStrokingColorN, [asPDFName(name)]);
+    };
     var setStrokingColorspace = function (name) {
         return PDFOperator.of(Ops.StrokingColorspace, [asPDFName(name)]);
+    };
+    var setStrokingPatternColorspace = function () {
+        return PDFOperator.of(Ops.StrokingColorspace, [asPDFName('Pattern')]);
     };
     var setStrokingSpecialColor = function () {
         var components = [];
@@ -30639,6 +30673,9 @@
             components[_i] = arguments[_i];
         }
         return PDFOperator.of(Ops.StrokingColorN, __spreadArrays(components.map(asPDFNumber)));
+    };
+    var setStrokingPatternColor = function (name) {
+        return PDFOperator.of(Ops.StrokingColorN, [asPDFName(name)]);
     };
     /* ==================== Marked Content Operators ==================== */
     var beginMarkedContent = function (tag) {
@@ -30651,6 +30688,7 @@
         ColorTypes["RGB"] = "RGB";
         ColorTypes["CMYK"] = "CMYK";
         ColorTypes["Separation"] = "Separation";
+        ColorTypes["Pattern"] = "Pattern";
     })(exports.ColorTypes || (exports.ColorTypes = {}));
     var grayscale = function (gray) {
         assertRange(gray, 'gray', 0.0, 1.0);
@@ -30673,9 +30711,15 @@
         assertRange(tint, 'tint', 0, 1);
         return { type: exports.ColorTypes.Separation, name: name, tint: tint };
     };
-    var Grayscale = exports.ColorTypes.Grayscale, RGB = exports.ColorTypes.RGB, CMYK = exports.ColorTypes.CMYK, Separation = exports.ColorTypes.Separation;
+    var pattern = function (name, transform) {
+        // TODO assert
+        return { type: exports.ColorTypes.Pattern, name: name, transform: transform };
+    };
+    var Grayscale = exports.ColorTypes.Grayscale, RGB = exports.ColorTypes.RGB, CMYK = exports.ColorTypes.CMYK, Separation = exports.ColorTypes.Separation, Pattern = exports.ColorTypes.Pattern;
     var setFillingColorspaceOrUndefined = function (color) {
-        return color.type === Separation ? setFillingColorspace(color.name) : undefined;
+        return color.type === Separation ? setFillingColorspace(color.name)
+            : color.type === Pattern ? setFillingPatternColorspace()
+                : undefined;
     };
     // prettier-ignore
     var setFillingColor = function (color) {
@@ -30683,10 +30727,14 @@
             : color.type === RGB ? setFillingRgbColor(color.red, color.green, color.blue)
                 : color.type === CMYK ? setFillingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                     : color.type === Separation ? setFillingSpecialColor(color.tint)
-                        : error("Invalid color: " + JSON.stringify(color));
+                        : color.type === Pattern ? setFillingPatternColor(color.name)
+                            // : color.type === Gradient   ? setFillingGradientColor
+                            : error("Invalid color: " + JSON.stringify(color));
     };
     var setStrokingColorspaceOrUndefined = function (color) {
-        return color.type === Separation ? setStrokingColorspace(color.name) : undefined;
+        return color.type === Separation ? setStrokingColorspace(color.name)
+            : color.type === Pattern ? setStrokingPatternColorspace()
+                : undefined;
     };
     // prettier-ignore
     var setStrokingColor = function (color) {
@@ -30694,7 +30742,8 @@
             : color.type === RGB ? setStrokingRgbColor(color.red, color.green, color.blue)
                 : color.type === CMYK ? setStrokingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                     : color.type === Separation ? setStrokingSpecialColor(color.tint)
-                        : error("Invalid color: " + JSON.stringify(color));
+                        : color.type === Pattern ? setStrokingPatternColor(color.name)
+                            : error("Invalid color: " + JSON.stringify(color));
     };
     // prettier-ignore
     var componentsToColor = function (comps, scale) {
@@ -39845,6 +39894,7 @@
     exports.numberToString = numberToString;
     exports.padStart = padStart;
     exports.parseDate = parseDate;
+    exports.pattern = pattern;
     exports.pdfDocEncodingDecode = pdfDocEncodingDecode;
     exports.pluckIndices = pluckIndices;
     exports.popGraphicsState = popGraphicsState;
@@ -39874,6 +39924,8 @@
     exports.setFillingColorspace = setFillingColorspace;
     exports.setFillingColorspaceOrUndefined = setFillingColorspaceOrUndefined;
     exports.setFillingGrayscaleColor = setFillingGrayscaleColor;
+    exports.setFillingPatternColor = setFillingPatternColor;
+    exports.setFillingPatternColorspace = setFillingPatternColorspace;
     exports.setFillingRgbColor = setFillingRgbColor;
     exports.setFillingSpecialColor = setFillingSpecialColor;
     exports.setFontAndSize = setFontAndSize;
@@ -39887,6 +39939,8 @@
     exports.setStrokingColorspace = setStrokingColorspace;
     exports.setStrokingColorspaceOrUndefined = setStrokingColorspaceOrUndefined;
     exports.setStrokingGrayscaleColor = setStrokingGrayscaleColor;
+    exports.setStrokingPatternColor = setStrokingPatternColor;
+    exports.setStrokingPatternColorspace = setStrokingPatternColorspace;
     exports.setStrokingRgbColor = setStrokingRgbColor;
     exports.setStrokingSpecialColor = setStrokingSpecialColor;
     exports.setTextMatrix = setTextMatrix;

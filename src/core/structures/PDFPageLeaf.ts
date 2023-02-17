@@ -213,6 +213,26 @@ class PDFPageLeaf extends PDFDict {
     return newKey;
   }
 
+  newShading(tag: string): PDFName {
+    const { Shading } = this.normalizedEntries();
+    return Shading.uniqueKey(tag);
+  }
+
+  setShading(name: PDFName, shadingRef: PDFRef): void {
+    const { Shading } = this.normalizedEntries();
+    Shading.set(name, shadingRef);
+  }
+
+  newPattern(tag: string): PDFName {
+    const { Pattern } = this.normalizedEntries();
+    return Pattern.uniqueKey(tag);
+  }
+
+  setPattern(name: PDFName, patternRef: PDFRef): void {
+    const { Pattern } = this.normalizedEntries();
+    Pattern.set(name, patternRef);
+  }
+
   ascend(visitor: (node: PDFPageTree | PDFPageLeaf) => any): void {
     visitor(this);
     const Parent = this.Parent();
@@ -263,6 +283,14 @@ class PDFPageLeaf extends PDFDict {
       Resources.lookupMaybe(PDFName.ColorSpace, PDFDict) || context.obj({});
     Resources.set(PDFName.ColorSpace, ColorSpace);
 
+    const Shading =
+        Resources.lookupMaybe(PDFName.Shading, PDFDict) || context.obj({});
+    Resources.set(PDFName.Shading, Shading);
+
+    const Pattern =
+      Resources.lookupMaybe(PDFName.Pattern, PDFDict) || context.obj({});
+    Resources.set(PDFName.Pattern, Pattern);
+
     const Annots = this.Annots() || context.obj([]);
     this.set(PDFName.Annots, Annots);
 
@@ -282,6 +310,8 @@ class PDFPageLeaf extends PDFDict {
       XObject: Resources.lookup(PDFName.XObject, PDFDict),
       ExtGState: Resources.lookup(PDFName.ExtGState, PDFDict),
       ColorSpace: Resources.lookup(PDFName.ColorSpace, PDFDict),
+      Shading: Resources.lookup(PDFName.Shading, PDFDict),
+      Pattern: Resources.lookup(PDFName.Pattern, PDFDict)
     };
   }
 }

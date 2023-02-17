@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.colorToComponents = exports.componentsToColor = exports.setStrokingColor = exports.setStrokingColorspaceOrUndefined = exports.setFillingColor = exports.setFillingColorspaceOrUndefined = exports.separation = exports.cmyk = exports.rgb = exports.grayscale = exports.ColorTypes = void 0;
+exports.colorToComponents = exports.componentsToColor = exports.setStrokingColor = exports.setStrokingColorspaceOrUndefined = exports.setFillingColor = exports.setFillingColorspaceOrUndefined = exports.pattern = exports.separation = exports.cmyk = exports.rgb = exports.grayscale = exports.ColorTypes = void 0;
 var operators_1 = require("./operators");
 var utils_1 = require("../utils");
 var ColorTypes;
@@ -9,6 +9,7 @@ var ColorTypes;
     ColorTypes["RGB"] = "RGB";
     ColorTypes["CMYK"] = "CMYK";
     ColorTypes["Separation"] = "Separation";
+    ColorTypes["Pattern"] = "Pattern";
 })(ColorTypes = exports.ColorTypes || (exports.ColorTypes = {}));
 exports.grayscale = function (gray) {
     utils_1.assertRange(gray, 'gray', 0.0, 1.0);
@@ -31,9 +32,15 @@ exports.separation = function (name, tint) {
     utils_1.assertRange(tint, 'tint', 0, 1);
     return { type: ColorTypes.Separation, name: name, tint: tint };
 };
-var Grayscale = ColorTypes.Grayscale, RGB = ColorTypes.RGB, CMYK = ColorTypes.CMYK, Separation = ColorTypes.Separation;
+exports.pattern = function (name, transform) {
+    // TODO assert
+    return { type: ColorTypes.Pattern, name: name, transform: transform };
+};
+var Grayscale = ColorTypes.Grayscale, RGB = ColorTypes.RGB, CMYK = ColorTypes.CMYK, Separation = ColorTypes.Separation, Pattern = ColorTypes.Pattern;
 exports.setFillingColorspaceOrUndefined = function (color) {
-    return color.type === Separation ? operators_1.setFillingColorspace(color.name) : undefined;
+    return color.type === Separation ? operators_1.setFillingColorspace(color.name)
+        : color.type === Pattern ? operators_1.setFillingPatternColorspace()
+            : undefined;
 };
 // prettier-ignore
 exports.setFillingColor = function (color) {
@@ -41,10 +48,14 @@ exports.setFillingColor = function (color) {
         : color.type === RGB ? operators_1.setFillingRgbColor(color.red, color.green, color.blue)
             : color.type === CMYK ? operators_1.setFillingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                 : color.type === Separation ? operators_1.setFillingSpecialColor(color.tint)
-                    : utils_1.error("Invalid color: " + JSON.stringify(color));
+                    : color.type === Pattern ? operators_1.setFillingPatternColor(color.name)
+                        // : color.type === Gradient   ? setFillingGradientColor
+                        : utils_1.error("Invalid color: " + JSON.stringify(color));
 };
 exports.setStrokingColorspaceOrUndefined = function (color) {
-    return color.type === Separation ? operators_1.setStrokingColorspace(color.name) : undefined;
+    return color.type === Separation ? operators_1.setStrokingColorspace(color.name)
+        : color.type === Pattern ? operators_1.setStrokingPatternColorspace()
+            : undefined;
 };
 // prettier-ignore
 exports.setStrokingColor = function (color) {
@@ -52,7 +63,8 @@ exports.setStrokingColor = function (color) {
         : color.type === RGB ? operators_1.setStrokingRgbColor(color.red, color.green, color.blue)
             : color.type === CMYK ? operators_1.setStrokingCmykColor(color.cyan, color.magenta, color.yellow, color.key)
                 : color.type === Separation ? operators_1.setStrokingSpecialColor(color.tint)
-                    : utils_1.error("Invalid color: " + JSON.stringify(color));
+                    : color.type === Pattern ? operators_1.setStrokingPatternColor(color.name)
+                        : utils_1.error("Invalid color: " + JSON.stringify(color));
 };
 // prettier-ignore
 exports.componentsToColor = function (comps, scale) {
