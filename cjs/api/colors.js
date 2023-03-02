@@ -79,6 +79,7 @@ exports.colorToComponents = function (color) {
     return color.type === Grayscale ? [color.gray]
         : color.type === RGB ? [color.red, color.green, color.blue]
             : color.type === CMYK ? [color.cyan, color.magenta, color.yellow, color.key]
-                : utils_1.error("Invalid color: " + JSON.stringify(color));
+                : color.type === Separation ? [1.0]
+                    : utils_1.error("Invalid color: " + JSON.stringify(color));
 };
 //# sourceMappingURL=colors.js.map

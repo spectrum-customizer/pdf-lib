@@ -150,4 +150,5 @@ export const colorToComponents = (color: Color) =>
     color.type === Grayscale ? [color.gray]
   : color.type === RGB       ? [color.red, color.green, color.blue]
   : color.type === CMYK      ? [color.cyan, color.magenta, color.yellow, color.key]
+  : color.type === Separation ? [1.0]
   : error(`Invalid color: ${JSON.stringify(color)}`);
