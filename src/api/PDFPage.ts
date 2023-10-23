@@ -1267,7 +1267,6 @@ export default class PDFPage {
       1,
     );
     assertIsOneOfOrUndefined(options.blendMode, 'options.blendMode', BlendMode);
-
     const graphicsStateKey = this.maybeEmbedGraphicsState({
       opacity: options.opacity,
       borderOpacity: options.borderOpacity,
@@ -1281,21 +1280,24 @@ export default class PDFPage {
     }
 
     const contentStream = this.getContentStream();
-    contentStream.push(
-      ...drawSvgPath(path, {
-        x: options.x ?? this.x,
-        y: options.y ?? this.y,
-        scale: options.scale,
-        rotate: options.rotate ?? degrees(0),
-        color: options.color ?? undefined,
-        borderColor: options.borderColor ?? undefined,
-        borderWidth: options.borderWidth ?? 0,
-        borderDashArray: options.borderDashArray ?? undefined,
-        borderDashPhase: options.borderDashPhase ?? undefined,
-        borderLineCap: options.borderLineCap ?? undefined,
-        graphicsState: graphicsStateKey,
-      }),
-    );
+
+    const pathContent = drawSvgPath(path, {
+      x: options.x ?? this.x,
+      y: options.y ?? this.y,
+      scale: options.scale,
+      rotate: options.rotate ?? degrees(0),
+      color: options.color ?? undefined,
+      borderColor: options.borderColor ?? undefined,
+      borderWidth: options.borderWidth ?? 0,
+      borderDashArray: options.borderDashArray ?? undefined,
+      borderDashPhase: options.borderDashPhase ?? undefined,
+      borderLineCap: options.borderLineCap ?? undefined,
+      graphicsState: graphicsStateKey,
+    });
+
+    for (let i = 0; i < pathContent.length; i++) {
+      contentStream.push(pathContent[i]);
+    }
   }
 
   /**

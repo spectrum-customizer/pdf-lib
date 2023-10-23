@@ -190,7 +190,7 @@ export var drawEllipse = function (options) {
 };
 export var drawSvgPath = function (path, options) {
     var _a, _b, _c;
-    return __spreadArrays([
+    var result = [
         pushGraphicsState(),
         options.graphicsState && setGraphicsState(options.graphicsState),
         translate(options.x, options.y),
@@ -205,14 +205,18 @@ export var drawSvgPath = function (path, options) {
         options.borderWidth && setLineWidth(options.borderWidth),
         options.borderLineCap && setLineCap(options.borderLineCap),
         setDashPattern((_b = options.borderDashArray) !== null && _b !== void 0 ? _b : [], (_c = options.borderDashPhase) !== null && _c !== void 0 ? _c : 0)
-    ], svgPathToOperators(path), [
-        // prettier-ignore
-        options.color && options.borderWidth ? fillAndStroke()
-            : options.color ? fill()
-                : options.borderColor ? stroke()
-                    : closePath(),
-        popGraphicsState(),
-    ]).filter(Boolean);
+    ];
+    var pathOperators = svgPathToOperators(path);
+    for (var i = 0; i < pathOperators.length; i++) {
+        result.push(pathOperators[i]);
+    }
+    // prettier-ignore
+    result.push(options.color && options.borderWidth ? fillAndStroke()
+        : options.color ? fill()
+            : options.borderColor ? stroke()
+                : closePath());
+    result.push(popGraphicsState());
+    return result.filter(Boolean);
 };
 export var drawCheckMark = function (options) {
     var size = asNumber(options.size);

@@ -5,9 +5,9 @@ export declare const createValueErrorMsg: (value: any, valueName: string, values
 export declare const assertIsOneOf: (value: any, valueName: string, allowedValues: Primitive[] | {
     [key: string]: Primitive;
 }) => void;
-export declare const assertIsOneOfOrUndefined: (value: any, valueName: string, allowedValues: Primitive[] | {
+export declare const assertIsOneOfOrUndefined: (value: any, valueName: string, allowedValues: {
     [key: string]: Primitive;
-}) => void;
+} | Primitive[]) => void;
 export declare const assertIsSubset: (values: any[], valueName: string, allowedValues: Primitive[] | {
     [key: string]: Primitive;
 }) => void;

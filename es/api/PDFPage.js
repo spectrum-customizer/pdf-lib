@@ -1108,7 +1108,7 @@ var PDFPage = /** @class */ (function () {
             options.borderColor = rgb(0, 0, 0);
         }
         var contentStream = this.getContentStream();
-        contentStream.push.apply(contentStream, drawSvgPath(path, {
+        var pathContent = drawSvgPath(path, {
             x: (_a = options.x) !== null && _a !== void 0 ? _a : this.x,
             y: (_b = options.y) !== null && _b !== void 0 ? _b : this.y,
             scale: options.scale,
@@ -1120,7 +1120,10 @@ var PDFPage = /** @class */ (function () {
             borderDashPhase: (_h = options.borderDashPhase) !== null && _h !== void 0 ? _h : undefined,
             borderLineCap: (_j = options.borderLineCap) !== null && _j !== void 0 ? _j : undefined,
             graphicsState: graphicsStateKey,
-        }));
+        });
+        for (var i = 0; i < pathContent.length; i++) {
+            contentStream.push(pathContent[i]);
+        }
     };
     /**
      * Draw a line on this page. For example:

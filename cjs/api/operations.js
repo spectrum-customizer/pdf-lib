@@ -193,7 +193,7 @@ exports.drawEllipse = function (options) {
 };
 exports.drawSvgPath = function (path, options) {
     var _a, _b, _c;
-    return tslib_1.__spreadArrays([
+    var result = [
         operators_1.pushGraphicsState(),
         options.graphicsState && operators_1.setGraphicsState(options.graphicsState),
         operators_1.translate(options.x, options.y),
@@ -208,14 +208,18 @@ exports.drawSvgPath = function (path, options) {
         options.borderWidth && operators_1.setLineWidth(options.borderWidth),
         options.borderLineCap && operators_1.setLineCap(options.borderLineCap),
         operators_1.setDashPattern((_b = options.borderDashArray) !== null && _b !== void 0 ? _b : [], (_c = options.borderDashPhase) !== null && _c !== void 0 ? _c : 0)
-    ], svgPath_1.svgPathToOperators(path), [
-        // prettier-ignore
-        options.color && options.borderWidth ? operators_1.fillAndStroke()
-            : options.color ? operators_1.fill()
-                : options.borderColor ? operators_1.stroke()
-                    : operators_1.closePath(),
-        operators_1.popGraphicsState(),
-    ]).filter(Boolean);
+    ];
+    var pathOperators = svgPath_1.svgPathToOperators(path);
+    for (var i = 0; i < pathOperators.length; i++) {
+        result.push(pathOperators[i]);
+    }
+    // prettier-ignore
+    result.push(options.color && options.borderWidth ? operators_1.fillAndStroke()
+        : options.color ? operators_1.fill()
+            : options.borderColor ? operators_1.stroke()
+                : operators_1.closePath());
+    result.push(operators_1.popGraphicsState());
+    return result.filter(Boolean);
 };
 exports.drawCheckMark = function (options) {
     var size = objects_1.asNumber(options.size);

@@ -31340,7 +31340,7 @@ var drawEllipse = function (options) {
 };
 var drawSvgPath = function (path, options) {
     var _a, _b, _c;
-    return __spreadArrays([
+    var result = [
         pushGraphicsState(),
         options.graphicsState && setGraphicsState(options.graphicsState),
         translate(options.x, options.y),
@@ -31355,14 +31355,18 @@ var drawSvgPath = function (path, options) {
         options.borderWidth && setLineWidth(options.borderWidth),
         options.borderLineCap && setLineCap(options.borderLineCap),
         setDashPattern((_b = options.borderDashArray) !== null && _b !== void 0 ? _b : [], (_c = options.borderDashPhase) !== null && _c !== void 0 ? _c : 0)
-    ], svgPathToOperators(path), [
-        // prettier-ignore
-        options.color && options.borderWidth ? fillAndStroke()
-            : options.color ? fill()
-                : options.borderColor ? stroke()
-                    : closePath(),
-        popGraphicsState(),
-    ]).filter(Boolean);
+    ];
+    var pathOperators = svgPathToOperators(path);
+    for (var i = 0; i < pathOperators.length; i++) {
+        result.push(pathOperators[i]);
+    }
+    // prettier-ignore
+    result.push(options.color && options.borderWidth ? fillAndStroke()
+        : options.color ? fill()
+            : options.borderColor ? stroke()
+                : closePath());
+    result.push(popGraphicsState());
+    return result.filter(Boolean);
 };
 var drawCheckMark = function (options) {
     var size = asNumber(options.size);
@@ -39116,7 +39120,7 @@ var PDFPage = /** @class */ (function () {
             options.borderColor = rgb(0, 0, 0);
         }
         var contentStream = this.getContentStream();
-        contentStream.push.apply(contentStream, drawSvgPath(path, {
+        var pathContent = drawSvgPath(path, {
             x: (_a = options.x) !== null && _a !== void 0 ? _a : this.x,
             y: (_b = options.y) !== null && _b !== void 0 ? _b : this.y,
             scale: options.scale,
@@ -39128,7 +39132,10 @@ var PDFPage = /** @class */ (function () {
             borderDashPhase: (_h = options.borderDashPhase) !== null && _h !== void 0 ? _h : undefined,
             borderLineCap: (_j = options.borderLineCap) !== null && _j !== void 0 ? _j : undefined,
             graphicsState: graphicsStateKey,
-        }));
+        });
+        for (var i = 0; i < pathContent.length; i++) {
+            contentStream.push(pathContent[i]);
+        }
     };
     /**
      * Draw a line on this page. For example:

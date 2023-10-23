@@ -11,6 +11,6 @@ export declare const reverseArray: (array: Uint8Array) => Uint8Array;
 export declare const sum: (array: number[] | Uint8Array) => number;
 export declare const range: (start: number, end: number) => number[];
 export declare const pluckIndices: <T>(arr: T[], indices: number[]) => T[];
-export declare const canBeConvertedToUint8Array: (input: any) => input is string | ArrayBuffer | Uint8Array;
+export declare const canBeConvertedToUint8Array: (input: any) => input is string | Uint8Array | ArrayBuffer;
 export declare const toUint8Array: (input: string | ArrayBuffer | Uint8Array) => Uint8Array;
 //# sourceMappingURL=arrays.d.ts.map

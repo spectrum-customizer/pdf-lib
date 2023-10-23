@@ -364,8 +364,8 @@ export const drawSvgPath = (
     borderLineCap?: LineCapStyle;
     graphicsState?: string | PDFName;
   },
-) =>
-  [
+) => {
+  const result = [
     pushGraphicsState(),
     options.graphicsState && setGraphicsState(options.graphicsState),
 
@@ -378,23 +378,26 @@ export const drawSvgPath = (
     options.color && setFillingColorspaceOrUndefined(options.color),
     options.color && setFillingColor(options.color),
     options.borderColor &&
-      setStrokingColorspaceOrUndefined(options.borderColor),
+    setStrokingColorspaceOrUndefined(options.borderColor),
     options.borderColor && setStrokingColor(options.borderColor),
     options.borderWidth && setLineWidth(options.borderWidth),
     options.borderLineCap && setLineCap(options.borderLineCap),
-
-    setDashPattern(options.borderDashArray ?? [], options.borderDashPhase ?? 0),
-
-    ...svgPathToOperators(path),
-
-    // prettier-ignore
+    setDashPattern(options.borderDashArray ?? [], options.borderDashPhase ?? 0)
+  ];
+  const pathOperators = svgPathToOperators(path);
+  for (let i = 0; i < pathOperators.length; i++) {
+    result.push(pathOperators[i]);
+  }
+  // prettier-ignore
+  result.push(
     options.color && options.borderWidth ? fillAndStroke()
-  : options.color                      ? fill()
-  : options.borderColor                ? stroke()
-  : closePath(),
+    : options.color ? fill()
+    : options.borderColor ? stroke()
+    : closePath());
 
-    popGraphicsState(),
-  ].filter(Boolean) as PDFOperator[];
+  result.push(popGraphicsState());
+  return result.filter(Boolean) as PDFOperator[];
+};
 
 export const drawCheckMark = (options: {
   x: number | PDFNumber;
